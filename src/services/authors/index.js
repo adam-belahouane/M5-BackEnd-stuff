@@ -16,21 +16,26 @@ const authorsJSONPath = join(dirname(fileURLToPath(import.meta.url)), "authors.j
 const getAuthors = () => JSON.parse(fs.readFileSync(authorsJSONPath))
 const writeAuthors = (content) => (fs.writeFileSync(authorsJSONPath, JSON.stringify(content)))
 
-authorsRouter.post("/", (req, res) => {
-  console.log(req.body);
-
-  const newauthor = { ...req.body, createdAt: new Date(), id: uniqid() };
-  console.log(newauthor);
-
-  // const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
-  const authors = getAuthors()
-
-  authors.push(newauthor);
-
-  // fs.writeFileSync(authorsJSONPath, JSON.stringify(authors));
-  writeAuthors(authors)
-
-  res.status(201).send({ newauthor });
+authorsRouter.post("/", (req, res, next) => {
+  try {
+    console.log(req.body);
+  
+    const newauthor = { ...req.body, createdAt: new Date(), id: uniqid() };
+    console.log(newauthor);
+  
+    // const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
+    const authors = getAuthors()
+  
+    authors.push(newauthor);
+  
+    // fs.writeFileSync(authorsJSONPath, JSON.stringify(authors));
+    writeAuthors(authors)
+  
+    res.status(201).send({ newauthor });
+    
+  } catch (error) {
+    next(error)
+  }
 });
 
 authorsRouter.post("/checkemail", (req, res) => {

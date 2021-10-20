@@ -6,10 +6,15 @@ import uniqid from "uniqid";
 
 const authorsRouter = express.Router();
 
-const currentFilePath = fileURLToPath(import.meta.url);
+// const currentFilePath = fileURLToPath(import.meta.url);
 
-const parentFolderPath = dirname(currentFilePath);
-const authorsJSONPath = join(parentFolderPath, "authors.json");
+// const parentFolderPath = dirname(currentFilePath);
+// const authorsJSONPath = join(parentFolderPath, "authors.json");
+
+const authorsJSONPath = join(dirname(fileURLToPath(import.meta.url)), "authors.json")
+
+const getAuthors = () => JSON.parse(fs.readFileSync(authorsJSONPath))
+const writeAuthors = (content) => (fs.writeFileSync(authorsJSONPath, JSON.stringify(content)))
 
 authorsRouter.post("/", (req, res) => {
   console.log(req.body);
@@ -17,14 +22,26 @@ authorsRouter.post("/", (req, res) => {
   const newauthor = { ...req.body, createdAt: new Date(), id: uniqid() };
   console.log(newauthor);
 
-  const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
+  // const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
+  const authors = getAuthors()
 
   authors.push(newauthor);
 
-  fs.writeFileSync(authorsJSONPath, JSON.stringify(authors));
+  // fs.writeFileSync(authorsJSONPath, JSON.stringify(authors));
+  writeAuthors(authors)
 
   res.status(201).send({ newauthor });
 });
+
+authorsRouter.post("/checkemail", (req, res) => {
+  const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
+
+  if(authors.filter(author => author.email === req.body.email).length > 0){
+    res.status(403).send({succes: false, data: "User already exist"})
+  } else {
+    res.status(201).send({succes:true})
+  }
+})
 
 authorsRouter.get("/", (req, res) => {
   const fileContent = fs.readFileSync(authorsJSONPath);
